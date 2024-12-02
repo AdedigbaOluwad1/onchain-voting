@@ -67,7 +67,7 @@
   dependencies:
     buffer "~6.0.3"
 
-"@solana/web3.js@^1.68.0":
+"@solana/web3.js@^1.68.0", "@solana/web3.js@^1.95.5":
   version "1.95.5"
   resolved "https://registry.yarnpkg.com/@solana/web3.js/-/web3.js-1.95.5.tgz#ba70da4c205c64249ed94369fe2d617c0347cd85"
   integrity sha512-hU9cBrbg1z6gEjLH9vwIckGBVB78Ijm0iZFNk4ocm5OD82piPwuk3MeQ1rfiKD9YQtr95krrcaopb49EmQJlRg==

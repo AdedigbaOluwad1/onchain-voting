@@ -1,23 +1,35 @@
 import * as anchor from '@coral-xyz/anchor';
 import { Program } from '@coral-xyz/anchor';
 import { OnchainVoting } from '../target/types/onchain_voting';
+import { PublicKey } from '@solana/web3.js';
 
-describe('onchain-voting', () => {
+describe('onchain-voting', async () => {
 	// Configure the client to use the local cluster.
 	anchor.setProvider(anchor.AnchorProvider.env());
 
 	const program = anchor.workspace.OnchainVoting as Program<OnchainVoting>;
 
-	const voteBankSecret = new Uint8Array([
-		164, 57, 122, 92, 121, 11, 202, 246, 100, 113, 178, 197, 17, 113, 165,
-		75, 198, 205, 107, 159, 84, 96, 171, 130, 83, 212, 148, 60, 219, 121,
-		243, 157, 6, 251, 206, 84, 255, 40, 118, 152, 31, 121, 211, 205, 51,
-		233, 134, 77, 134, 36, 246, 98, 152, 139, 63, 216, 237, 193, 25, 53,
-		222, 99, 30, 56,
-	]);
+	let voteBank = anchor.web3.Keypair.generate();
 
-	let voteBank = anchor.web3.Keypair.generate()
-  // .fromSecretKey(voteBankSecret);
+	const [pda, bump] = await PublicKey.findProgramAddressSync(
+		[Buffer.from('seeds')],
+		program.programId
+	);
+
+	it('Initialize vote registry', async () => {
+		program.account.voteRegistry
+			.fetch(pda)
+			.then(() => {
+				console.log(
+					'Vote Registry PDA already initialized! PDA ::',
+					pda.toString()
+				);
+			})
+			.catch(async () => {
+				const tx = await program.methods.initVoteRegistry().rpc();
+				console.log('Vote Registry Initialized :: TxHash ::', tx);
+			});
+	});
 
 	it('Creating vote bank for public to vote', async () => {
 		let isAccountInitialized: boolean;
@@ -37,24 +49,39 @@ describe('onchain-voting', () => {
 				})
 				.signers([voteBank])
 				.rpc();
-			console.log('TxHash ::', tx);
+
+			console.log(
+				'Created Vpte Bank for Public to Vote :: TxHash ::',
+				tx
+			);
 		} else {
 			console.log('Voting account exists! Proceed to cast your vote!');
 		}
 	});
 
-	it('Vote for GM', async () => {
+	it('Add Option to Vote Account', async () => {
 		const tx = await program.methods
-			.castVote({ gn: {} })
+			.addOptionToVote('Option One')
 			.accounts({
 				voteAccount: voteBank.publicKey,
 			})
 			.rpc();
-		console.log('TxHash ::', tx);
 
-		let voteBankData = await program.account.voteBank.fetch(
-			voteBank.publicKey
-		);
-		console.log(`Bank Data ${JSON.stringify(voteBankData, null, 2)}`);
+		console.log('Option Added to Vote Account :: TxHash ::', tx);
 	});
+
+	it('Vote for GM', async () => {
+		const vote_option_id = new anchor.BN(1);
+		const tx = await program.methods
+			.castVote(vote_option_id)
+			.accounts({
+				voteAccount: voteBank.publicKey,
+			})
+			.rpc();
+
+		console.log('Vote Cast for First Vote Option :: TxHash ::', tx);
+	});
+
+	const pda_data = await program.account.voteRegistry.fetch(pda);
+	console.log(JSON.stringify(pda_data, null, 4));
 });
