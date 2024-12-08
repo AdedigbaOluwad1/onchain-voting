@@ -25,7 +25,7 @@ To run this project, you'll need:
 
 1. Clone the repository:
    ```
-   git clone https://github.com/AdedigbaOluwad1/onchain-voting-system.git 
+   git clone https://github.com/AdedigbaOluwad1/onchain-voting.git 
    ```
 2. Navigate to the project folder:
    ```
